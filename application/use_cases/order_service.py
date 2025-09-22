@@ -37,9 +37,9 @@ class OrderService:
         self._notification_service = notification_service
         self._inventory_service = inventory_service
     
-    def create_order_item(self, product_id: str, quantity: int)-> Optional[OrderItem]:
+    def create_order_item(self, product_id: str, quantity: int) -> Optional[OrderItem]:
         """Create a new order item
-    
+        
         Args:
             product_id: ID of the product
             quantity: quantity of the product
@@ -56,12 +56,17 @@ class OrderService:
             print(f"Insufficient inventory for product {product.name}")
             return None
         
-        return OrderItem(
-            product_id=product.id,
-            product_name=product.name,
-            quantity=quantity,
-            unit_price=product.price
-        )
+        # Use domain factory method that handles validation and defaults
+        try:
+            return OrderItem.create(
+                product_id=product.id,
+                product_name=product.name,
+                quantity=quantity,
+                unit_price=product.price
+            )
+        except ValueError as e:
+            print(f"Failed to create order item: {e}")
+            return None
     
     def create_order(self, customer_id: str, items: List[dict], notes: Optional[str] = None) -> Optional[Order]:
         """Create a new order
@@ -93,16 +98,11 @@ class OrderService:
             print("Failed to reserve inventory")
             return None
         
-        # Create order
-        order = Order(
-            id="",
-            customer_id=customer_id,
-            items=order_items,
-            status=OrderStatus.PENDING,
-            created_at=datetime.now(),
-            updated_at=datetime.now(),
-            notes=notes
-        )
+        # Use domain factory method that handles defaults and validation
+        order = Order.create_new(customer_id, notes)
+        
+        # Add items to the order
+        order.items = [item for item in order_items if item is not None]
         
         self._order_repository.save(order)
         print(f"Order {order.id} created successfully")

@@ -27,69 +27,36 @@ from application.use_cases.order_service import OrderService
 
 def setup_sample_data(product_service: ProductService):
     """Setup some sample products for demonstration"""
-    print("🔄 Setting up sample data...")
+    print("🔄 Setting up sample data using domain factory methods...")
     
-    # Pizza category
-    product_service.add_product(
-        "Margherita Pizza",
-        "Classic pizza with tomato sauce, mozzarella, and fresh basil",
-        12.99,
-        "Pizza"
-    )
+    # Define sample products data
+    sample_products = [
+        # Pizza category
+        ("Margherita Pizza", "Classic pizza with tomato sauce, mozzarella, and fresh basil", 12.99, "Pizza"),
+        ("Pepperoni Pizza", "Pizza with pepperoni, tomato sauce, and mozzarella cheese", 14.99, "Pizza"),
+        
+        # Burger category  
+        ("Classic Burger", "Beef patty with lettuce, tomato, onion, and special sauce", 10.50, "Burger"),
+        ("Chicken Burger", "Grilled chicken breast with lettuce and mayo", 9.99, "Burger"),
+        
+        # Drinks category
+        ("Coca Cola", "Refreshing cola soft drink", 2.99, "Drinks"),
+        ("Fresh Orange Juice", "Freshly squeezed orange juice", 4.50, "Drinks"),
+        
+        # Desserts category
+        ("Chocolate Cake", "Rich chocolate cake with chocolate frosting", 6.99, "Desserts"),
+        ("Ice Cream Sundae", "Vanilla ice cream with chocolate sauce and whipped cream", 5.50, "Desserts")
+    ]
     
-    product_service.add_product(
-        "Pepperoni Pizza",
-        "Pizza with pepperoni, tomato sauce, and mozzarella cheese",
-        14.99,
-        "Pizza"
-    )
+    # Create products using application service (which uses domain factory methods)
+    for name, description, price, category in sample_products:
+        try:
+            product = product_service.add_product(name, description, price, category)
+            print(f"   ✅ Created: {product.name} (${product.price:.2f}) with {product.get_default_inventory_level()} units")
+        except ValueError as e:
+            print(f"   ❌ Failed to create {name}: {e}")
     
-    # Burger category
-    product_service.add_product(
-        "Classic Burger",
-        "Beef patty with lettuce, tomato, onion, and special sauce",
-        10.50,
-        "Burger"
-    )
-    
-    product_service.add_product(
-        "Chicken Burger",
-        "Grilled chicken breast with lettuce and mayo",
-        9.99,
-        "Burger"
-    )
-    
-    # Drinks category
-    product_service.add_product(
-        "Coca Cola",
-        "Refreshing cola soft drink",
-        2.99,
-        "Drinks"
-    )
-    
-    product_service.add_product(
-        "Fresh Orange Juice",
-        "Freshly squeezed orange juice",
-        4.50,
-        "Drinks"
-    )
-    
-    # Desserts category
-    product_service.add_product(
-        "Chocolate Cake",
-        "Rich chocolate cake with chocolate frosting",
-        6.99,
-        "Desserts"
-    )
-    
-    product_service.add_product(
-        "Ice Cream Sundae",
-        "Vanilla ice cream with chocolate sauce and whipped cream",
-        5.50,
-        "Desserts"
-    )
-    
-    print("✅ Sample data loaded successfully!")
+    print("✅ Sample data loaded successfully with domain defaults!")
 
 
 def main():

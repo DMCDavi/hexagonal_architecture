@@ -29,21 +29,10 @@ class ProductService:
             The created product
             
         Raises:
-            ValueError: If price is not positive
+            ValueError: If validation fails (handled by domain entity)
         """
-        if price <= 0:
-            raise ValueError("Price must be positive")
-        
-        if not name.strip():
-            raise ValueError("Product name cannot be empty")
-        
-        product = Product(
-            id="",
-            name=name.strip(),
-            description=description.strip(),
-            price=price,
-            category=category.strip()
-        )
+        # Use domain factory method that handles validation and defaults
+        product = Product.create(name, description, price, category)
         self._product_repository.save(product)
         return product
     

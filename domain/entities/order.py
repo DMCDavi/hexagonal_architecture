@@ -24,15 +24,51 @@ class Order:
     updated_at: datetime
     notes: Optional[str] = None
     
+    # Domain default values and constants
+    DEFAULT_STATUS = OrderStatus.PENDING
+    MIN_ITEMS_REQUIRED = 1
+    MAX_ITEMS_PER_ORDER = 50
+    
     def __post_init__(self):
+        # Generate ID if not provided
         if not self.id:
             self.id = str(uuid.uuid4())
+        
+        # Set default timestamps
+        current_time = datetime.now()
         if not self.created_at:
-            self.created_at = datetime.now()
+            self.created_at = current_time
         if not self.updated_at:
-            self.updated_at = datetime.now()
+            self.updated_at = current_time
+        
+        # Initialize empty items list if not provided
         if not self.items:
             self.items = []
+        
+        # Validate business rules
+        self._validate_order()
+    
+    @classmethod
+    def create_new(cls, customer_id: str, notes: Optional[str] = None) -> 'Order':
+        """Factory method to create a new order with domain defaults"""
+        current_time = datetime.now()
+        return cls(
+            id="",  # Will be auto-generated
+            customer_id=customer_id,
+            items=[],  # Start with empty items
+            status=cls.DEFAULT_STATUS,  # Default to PENDING
+            created_at=current_time,
+            updated_at=current_time,
+            notes=notes
+        )
+    
+    def _validate_order(self):
+        """Apply domain business rules validation"""
+        if not self.customer_id:
+            raise ValueError("Order must have a customer ID")
+        
+        if len(self.items) > self.MAX_ITEMS_PER_ORDER:
+            raise ValueError(f"Order cannot have more than {self.MAX_ITEMS_PER_ORDER} items")
     
     @property
     def total_amount(self) -> float:

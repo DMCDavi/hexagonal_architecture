@@ -5,7 +5,6 @@ This is an application service - orchestrates domain logic and external dependen
 """
 
 from typing import List, Optional
-import re
 
 from domain.entities.customer import Customer
 from application.ports.repositories.customer_repository import CustomerRepository
@@ -30,34 +29,16 @@ class CustomerService:
             The registered customer (existing or newly created)
             
         Raises:
-            ValueError: If email format is invalid
+            ValueError: If validation fails (handled by domain entity)
         """
-        # Validate email format
-        if not self._is_valid_email(email):
-            raise ValueError("Invalid email address format")
-        
-        # Validate required fields
-        if not name.strip():
-            raise ValueError("Customer name cannot be empty")
-        
-        if not phone.strip():
-            raise ValueError("Phone number cannot be empty")
-        
-        if not address.strip():
-            raise ValueError("Address cannot be empty")
-        
-        # Check if customer already exists
-        existing = self._customer_repository.find_by_email(email.lower())
+        # Check if customer already exists (email will be normalized by domain)
+        normalized_email = email.strip().lower() if email else ""
+        existing = self._customer_repository.find_by_email(normalized_email)
         if existing:
             return existing
         
-        customer = Customer(
-            id="",
-            name=name.strip(),
-            email=email.lower(),
-            phone=phone.strip(),
-            address=address.strip()
-        )
+        # Use domain factory method that handles validation, normalization, and defaults
+        customer = Customer.create(name, email, phone, address)
         self._customer_repository.save(customer)
         return customer
     
@@ -123,11 +104,9 @@ class CustomerService:
         Returns:
             True if update was successful, False otherwise
         """
-        if not self._is_valid_email(new_email):
-            return False
-        
         # Check if email is already taken
-        if self._customer_repository.exists_by_email(new_email.lower()):
+        normalized_email = new_email.strip().lower() if new_email else ""
+        if self._customer_repository.exists_by_email(normalized_email):
             return False
         
         customer = self._customer_repository.find_by_id(customer_id)
@@ -135,7 +114,8 @@ class CustomerService:
             return False
         
         try:
-            customer.update_email(new_email.lower())
+            # Domain entity handles validation and normalization
+            customer.update_email(new_email)
             self._customer_repository.save(customer)
             return True
         except ValueError:
@@ -168,14 +148,3 @@ class CustomerService:
         """
         return self._customer_repository.exists_by_email(email.lower())
     
-    def _is_valid_email(self, email: str) -> bool:
-        """Validate email format
-        
-        Args:
-            email: The email address to validate
-            
-        Returns:
-            True if email format is valid, False otherwise
-        """
-        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
-        return bool(re.match(pattern, email.strip()))
