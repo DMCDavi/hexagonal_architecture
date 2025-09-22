@@ -1,1 +1,1 @@
-# Application package - Contains application services and use cases
+# Application package - Use cases and ports

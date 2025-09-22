@@ -1,1 +1,4 @@
-# Domain package - Contains business entities and core logic
+# Domain package - Core business logic
+
+from .entities import *
+from .value_objects import *

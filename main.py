@@ -1,29 +1,28 @@
 """
-Restaurant Order System - Hexagonal Architecture Demo
+Restaurant Order System - Clean Hexagonal Architecture Demo
 
-This application demonstrates the hexagonal architecture pattern with:
-- Domain entities (business logic)
-- Ports (interfaces)
-- Adapters (implementations)
-- Application services (use cases)
-- Console interface (user adapter)
+This application demonstrates the Clean Hexagonal Architecture pattern with:
+- Domain Layer: Pure business logic (entities, value objects)
+- Application Layer: Use cases and ports (interfaces)
+- Infrastructure Layer: Adapters and external concerns
 
+The architecture follows the dependency rule: dependencies point inward.
 The core business logic is completely isolated from external concerns.
 """
 
-from domain.entities import Product
-from adapters.repositories import (
-    InMemoryProductRepository,
-    InMemoryOrderRepository,
-    InMemoryCustomerRepository
-)
-from adapters.services import (
-    MockPaymentGateway,
-    ConsoleNotificationService,
-    MockInventoryService
-)
-from application.services import ProductService, CustomerService, OrderService
-from interface.console import ConsoleInterface
+# Infrastructure Layer - External adapters
+from infrastructure.adapters.persistence.in_memory_product_repository import InMemoryProductRepository
+from infrastructure.adapters.persistence.in_memory_order_repository import InMemoryOrderRepository  
+from infrastructure.adapters.persistence.in_memory_customer_repository import InMemoryCustomerRepository
+from infrastructure.adapters.external_services.mock_payment_gateway import MockPaymentGateway
+from infrastructure.adapters.external_services.console_notification_service import ConsoleNotificationService
+from infrastructure.adapters.external_services.mock_inventory_service import MockInventoryService
+from infrastructure.adapters.presentation.console_interface import ConsoleInterface
+
+# Application Layer - Use cases
+from application.use_cases.product_service import ProductService
+from application.use_cases.customer_service import CustomerService
+from application.use_cases.order_service import OrderService
 
 
 def setup_sample_data(product_service: ProductService):
@@ -94,21 +93,30 @@ def setup_sample_data(product_service: ProductService):
 
 
 def main():
-    """Main application entry point with dependency injection"""
+    """Main application entry point with dependency injection
+    
+    This function demonstrates the Clean Architecture dependency injection pattern:
+    1. Create infrastructure adapters (outermost layer)
+    2. Inject them into application services (middle layer) 
+    3. Keep domain logic pure (innermost layer)
+    """
     print("🚀 Starting Restaurant Order System...")
+    print("📐 Using Clean Hexagonal Architecture")
     
     try:
-        # Initialize adapters (implementations of ports)
-        # These could easily be replaced with different implementations
+        # ===== INFRASTRUCTURE LAYER =====
+        # Initialize persistence adapters (easily replaceable with real databases)
         product_repository = InMemoryProductRepository()
         order_repository = InMemoryOrderRepository()
         customer_repository = InMemoryCustomerRepository()
         
+        # Initialize external service adapters (easily replaceable with real services)
         payment_gateway = MockPaymentGateway()
         notification_service = ConsoleNotificationService()
         inventory_service = MockInventoryService()
         
-        # Initialize application services with injected dependencies
+        # ===== APPLICATION LAYER =====
+        # Initialize use cases with injected dependencies (ports)
         product_service = ProductService(product_repository)
         customer_service = CustomerService(customer_repository)
         order_service = OrderService(
@@ -120,13 +128,22 @@ def main():
             inventory_service
         )
         
-        # Setup sample data
-        setup_sample_data(product_service)
-        
-        # Initialize and start the console interface
+        # ===== PRESENTATION LAYER =====
+        # Initialize presentation adapter
         console = ConsoleInterface(product_service, customer_service, order_service)
         
+        # ===== BOOTSTRAP =====
+        # Setup sample data for demonstration
+        setup_sample_data(product_service)
+        
         print("✅ System initialized successfully!")
+        print("\n🏗️  Architecture Layers:")
+        print("   🔷 Domain: Pure business logic")
+        print("   ⚡ Application: Use cases and ports") 
+        print("   🔧 Infrastructure: Adapters and external systems")
+        print("\n🚀 Starting application...\n")
+        
+        # Start the application
         console.start()
         
     except Exception as e:
