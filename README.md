@@ -1,5 +1,11 @@
 # Restaurant Order System - Clean Hexagonal Architecture
 
+## Group Components
+- Davi Machado Costa
+- Joao Felipe de Araujo Caldas
+- Maria Antonia Amado Lima
+- Rodrigo de Jesus Macedo
+
 ## 🏗️ Architecture Overview
 
 This project demonstrates the **Clean Hexagonal Architecture** pattern for a restaurant ordering system. The architecture follows Uncle Bob's Clean Architecture principles with proper layer separation and dependency inversion.
